@@ -6,15 +6,15 @@ import uvicorn
 import numpy as np
 import cv2
 import asyncio
-
 from PIL import Image
 from io import BytesIO
 import insightface
+from insightface.utils import storage
 from insightface.app import FaceAnalysis
 import logging
 
 logging.basicConfig(level=logging.INFO)
-# from tensorflow.keras import utils
+
 
 on_linux = sys.platform.startswith('linux')
 
@@ -35,18 +35,22 @@ models = [
     "antelopev2",
     "buffalo_l",
     "buffalo_m",
-    "buffalo_s",               
+    "buffalo_s",
 ]
 recognition_model = os.getenv("RECOGNITION_MODEL", "buffalo_l")
 
 detection_thresh = float(os.getenv("DETECTION_THRESH", "0.65"))
 
+# 设置下载模型URL
+storage.BASE_REPO_URL = 'https://github.com/kqstone/mt-photos-insightface-unofficial/releases/download/models'
+
+# 初始化人脸识别器
 faceAnalysis = FaceAnalysis(providers=['CUDAExecutionProvider', 'CPUExecutionProvider'], allowed_modules=['detection', 'recognition'], name=recognition_model)
 faceAnalysis.prepare(ctx_id=0, det_thresh=detection_thresh, det_size=(640, 640))
 
 
 async def check_inactive():
-    await asyncio.sleep(300)
+    await asyncio.sleep(3600)
     restart_program()
 
 

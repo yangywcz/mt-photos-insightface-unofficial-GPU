@@ -3,3 +3,5 @@
 .env
 /weights
 /__pycache__
+/app
+/models
