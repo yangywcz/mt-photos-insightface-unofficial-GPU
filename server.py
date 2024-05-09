@@ -6,10 +6,15 @@ import uvicorn
 import numpy as np
 import cv2
 import asyncio
-from deepface import DeepFace
+
 from PIL import Image
 from io import BytesIO
-from tensorflow.keras import utils
+import insightface
+from insightface.app import FaceAnalysis
+import logging
+
+logging.basicConfig(level=logging.INFO)
+# from tensorflow.keras import utils
 
 on_linux = sys.platform.startswith('linux')
 
@@ -22,36 +27,22 @@ http_port = int(os.getenv("HTTP_PORT", "8066"))
 inactive_task = None
 
 
-# 人脸检测模型
-backends = [
-    'opencv',
-    'ssd',
-    'dlib',
-    'mtcnn',
-    'retinaface',
-    'mediapipe',
-    'yolov8',
-    'yunet',
-    'fastmtcnn',
-]
-
-detector_backend = os.getenv("DETECTOR_BACKEND", "retinaface")
+detector_backend = os.getenv("DETECTOR_BACKEND", "insightface")
 
 
-# 人脸特征提取模型
+# 人脸检测及特征提取模型
 models = [
-    "VGG-Face",
-    "Facenet",
-    "Facenet512",
-    "OpenFace",
-    "DeepFace",
-    "DeepID",
-    "ArcFace",
-    "Dlib",
-    "SFace",
-    "GhostFaceNet",
+    "antelopev2",
+    "buffalo_l",
+    "buffalo_m",
+    "buffalo_s",               
 ]
-recognition_model = os.getenv("RECOGNITION_MODEL", "Facenet512")
+recognition_model = os.getenv("RECOGNITION_MODEL", "buffalo_l")
+
+detection_thresh = float(os.getenv("DETECTION_THRESH", "0.65"))
+
+faceAnalysis = FaceAnalysis(providers=['CUDAExecutionProvider', 'CPUExecutionProvider'], allowed_modules=['detection', 'recognition'], name=recognition_model)
+faceAnalysis.prepare(ctx_id=0, det_thresh=detection_thresh, det_size=(640, 640))
 
 
 async def check_inactive():
@@ -78,12 +69,12 @@ async def verify_header(api_key: str = Header(...)):
 
 @app.get("/")
 async def top_info():
-    return {"title": "mt-photos 人脸识别API", "link": "https://mtmt.tech/docs/advanced/facial_api","detector_backend": detector_backend, "recognition_model": recognition_model}
+    return {"title": "unofficial insightface face recognition project for mt-photos"}
 
 
 @app.post("/check")
 async def check_req(api_key: str = Depends(verify_header)):
-    return {'result': 'pass',"detector_backend": detector_backend, "recognition_model": recognition_model}
+    return {'result': 'pass'}
 
 
 @app.post("/restart")
@@ -136,6 +127,14 @@ async def process_image(file: UploadFile = File(...), api_key: str = Depends(ver
         # Exception while extracting faces from numpy array.Consider to set enforce_detection arg to False.
         del img
         data["result"] = embedding_objs
+        # logging.info("detector_backend: %s", detector_backend)
+        # logging.info("recognition_model: %s", recognition_model)
+        logging.info("detected_img: %s", file.filename)
+        logging.info("img_type: %s", content_type)
+        logging.info("detected_persons: %d", len(embedding_objs))
+        for embedding_obj in embedding_objs:
+            logging.info("facial_area: %s", str(embedding_obj["facial_area"]))
+            logging.info("face_confidence: %f", embedding_obj["face_confidence"])
         return data
     except Exception as e:
         if 'set enforce_detection' in str(e):
@@ -144,14 +143,18 @@ async def process_image(file: UploadFile = File(...), api_key: str = Depends(ver
         return {'result': [], 'msg': str(e)}
 
 def _represent(img):
-    utils.disable_interactive_logging()
-    return DeepFace.represent(
-        img_path=img,
-        detector_backend=detector_backend,
-        model_name=recognition_model,
-        enforce_detection=True,  # 强制检测，如果为true会报错, 设置为False时可以针对整张照片进行特征识别
-        align=True,
-    )
+  faces = faceAnalysis.get(img)
+  results = []
+  for face in faces:
+    resp_obj = {}
+    embedding = face.normed_embedding.astype(float)
+    resp_obj["embedding"] = embedding.tolist()
+    # print(len(resp_obj["embedding"]))
+    box = face.bbox
+    resp_obj["facial_area"] = {"x" : int(box[0]), "y" : int(box[1]), "w" : int(box[2] - box[0]), "h" : int(box[3] - box[1])}
+    resp_obj["face_confidence"] = face.det_score.astype(float) 
+    results.append(resp_obj)
+  return results
 
 async def predict(predict_func, img):
     return await asyncio.get_running_loop().run_in_executor(None, predict_func, img)
