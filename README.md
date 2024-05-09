@@ -1,64 +1,24 @@
-# MT Photos人脸识别API
+# MT Photos非官方人脸识别API
 
-- 基于[serengil/deepface](https://github.com/serengil/deepface)实现的人脸识别API
+- fork自[MT-Photos/mt-photos-deepface](https://github.com/MT-Photos/mt-photos-deepface), 删除了deepface相关，添加基于[deepinsight/insightface](https://github.com/deepinsight/insightface)实现的人脸识别API
 
 ## 模型选择
 
-### 人脸检测模型
-
-默认的人脸检测模型为retinaface，虽然计算耗时较长，但是最准确；
-
-可通过环境变量 `DETECTOR_BACKEND`来自定义检测模型；
-
-```python
-backends = [
-    'opencv',
-    'ssd',
-    'dlib',
-    'mtcnn',
-    'retinaface',
-    'mediapipe',
-    'yolov8',
-    'yunet',
-    'fastmtcnn',
-]
-detector_backend = os.getenv("DETECTOR_BACKEND", "retinaface")
-```
-
-### 人脸特征提取模型
-
-默认的人脸检测模型为Facenet512
+insightface提供了3种模型可供选择，从上到下精度逐渐下降，可获得更快的识别速度，默认使用buffalo_l模型
 
 可通过环境变量 `RECOGNITION_MODEL`来自定义特征提取模型；
 
 ```python
 models = [
-    "VGG-Face",
-    "Facenet",
-    "Facenet512",
-    "OpenFace",
-    "DeepFace",
-    "DeepID",
-    "ArcFace",
-    "Dlib",
-    "SFace",
-    "GhostFaceNet",
+    "antelopev2",
+    "buffalo_l",
+    "buffalo_s",
 ]
-recognition_model = os.getenv("RECOGNITION_MODEL", "Facenet512")
+recognition_model = os.getenv("RECOGNITION_MODEL", "buffalo_l")
 ```
 
-## 预训练模型
-
-如果容器内下载模型很慢，可以增加 /models 目录映射
-```
--v /host_path:/models
-```
-
-然后将对应的预训练模型放到容器内的`/models/.deepface/weights/`下；比如`/models/.deepface/weights/retinaface.h5`
-
-### 预训练模型下载地址
-
-https://github.com/serengil/deepface_models/releases/tag/v1.0
+初始化时会自动下载指定模型，根据连接速度可能需要等待数分钟时间
+所以模型向量长度均为默认512即可
 
 
 ## 安装方法
@@ -66,27 +26,22 @@ https://github.com/serengil/deepface_models/releases/tag/v1.0
 - 下载镜像
 
 ```
-docker pull mtphotos/mt-photos-deepface:latest
+docker pull kqstone/mt-photos-insightface-unofficial:latest
 ```
 
-- 创建容器
+- 创建及运行容器
 
 ```
-docker run -i -p 8066:8066 -e API_AUTH_KEY=mt_photos_ai_extra --name mt-photos-deepface --restart="unless-stopped" mtphotos/mt-photos-deepface:latest
+docker run -i -p 8066:8066 -e API_AUTH_KEY=mt_photos_ai_extra --name mt-photos-insightface-unofficial --restart="unless-stopped" kqstone/mt-photos-insightface-unofficial:latest
 ```
 
 
 
 ## 打包docker镜像
 
+可以自行编译打包镜像
 ```bash
-docker build  . -t mt-photos-deepface:latest
-```
-
-### 运行docker容器
-
-```bash
-docker run -i -p 8066:8066 -e API_AUTH_KEY=mt_photos_ai_extra --name mt-photos-deepface --restart="unless-stopped" mt-photos-deepface:latest
+docker build  . -t mt-photos-insightface-unofficial:latest
 ```
 
 ### 下载源码本地运行
@@ -134,15 +89,15 @@ curl --location --request POST 'http://127.0.0.1:8000/represent' \
 
 **response:**
 
-- detector_backend : 人脸检测模型
-- recognition_model : 人脸特征提取模型
+- detector_backend : "insightface",
+- recognition_model : 识别模型
 - result : 识别到的结果
 
 ### 返回数据示例
 ```json
 {
-  "detector_backend": "retinaface",
-  "recognition_model": "Facenet512",
+  "detector_backend": "insightface",
+  "recognition_model": 识别模型,
   "result": [
     {
       "embedding": [ 0.5760641694068909,... 512位向量 ],
