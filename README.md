@@ -19,7 +19,8 @@ recognition_model = os.getenv("RECOGNITION_MODEL", "buffalo_l")
 ```
 
 初始化时会自动下载指定模型，根据连接速度可能需要等待数分钟时间
-所以模型向量长度均为默认512即可
+
+所有模型向量长度均为默认512即可
 
 
 ## 安装方法
@@ -107,8 +108,6 @@ curl --location --request POST 'http://127.0.0.1:8000/represent' \
         "y": 112,
         "w": 179,
         "h": 250,
-        "left_eye": [ 271, 201 ],
-        "right_eye": [ 354, 205 ]
       },
       "face_confidence": 1.0
     }
