@@ -14,4 +14,6 @@ ENV RECOGNITION_MODEL=buffalo_l
 ENV DETECTION_THRESH=0.65
 EXPOSE 8066
 
+VOLUME ["/root/.insightface/models"]
+
 CMD [ "python3", "server.py" ]
