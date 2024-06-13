@@ -73,7 +73,9 @@ async def verify_header(api_key: str = Header(...)):
 
 @app.get("/")
 async def top_info():
-    return {"title": "unofficial insightface face recognition project for mt-photos"}
+    return {"title": "unofficial face recognition api for mt-photos, get more info: https://github.com/kqstone/mt-photos-insightface-unofficial", "link": "https://mtmt.tech/docs/advanced/facial_api","detector_backend": detector_backend, "recognition_model": recognition_model}
+
+
 
 
 @app.post("/check")
