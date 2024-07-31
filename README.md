@@ -2,6 +2,7 @@
 
 - 仅供非商业测试
 - fork自[MT-Photos/mt-photos-deepface](https://github.com/MT-Photos/mt-photos-deepface), 删除了deepface相关，添加基于[deepinsight/insightface](https://github.com/deepinsight/insightface)实现的人脸识别API
+- 修改依赖，支持CUDA
 
 ## 模型选择
 

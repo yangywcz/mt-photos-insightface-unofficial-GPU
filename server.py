@@ -80,7 +80,7 @@ async def top_info():
 
 @app.post("/check")
 async def check_req(api_key: str = Depends(verify_header)):
-    return {'result': 'pass'}
+    return {'result': 'pass',"detector_backend": detector_backend, "recognition_model": recognition_model}
 
 
 @app.post("/restart")
