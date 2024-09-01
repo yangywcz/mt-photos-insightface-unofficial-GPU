@@ -15,6 +15,7 @@ COPY requirements.txt .
 # 安装依赖包
 RUN pip3 install --no-cache-dir -r requirements.txt   
 RUN pip3 install --no-cache-dir ultralytics
+RUN pip3 install --no-cache-dir python-multipart
 RUN pip3 install --no-cache-dir insightface
 RUN pip3 install --no-cache-dir onnxruntime
 RUN pip3 install --no-cache-dir onnxruntime-gpu
