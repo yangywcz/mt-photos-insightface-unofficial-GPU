@@ -5,7 +5,7 @@ USER root
 RUN apt update && \
     apt install -y wget libgl1-mesa-glx libglib2.0-0 libsm6 libxrender1 libfontconfig  python3 pip && \
     wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb && \
-    dpkg -i libssl1.1_1.1.1f-1ubuntu2.22_amd64.deb && \
+    dpkg -i libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/log/*
 # 如果 libssl1.1_1.1.1f-1ubuntu2.22_amd64.deb 404 not found
 # 请打开 http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/ 查找 libssl1.1_1.1.1f-1ubuntu2.22_amd64.deb 对应的新版本
